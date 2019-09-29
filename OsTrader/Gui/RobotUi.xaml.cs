@@ -4,12 +4,14 @@
 */
 
 using System;
+using System.Collections.Generic;
 using System.Globalization;
 using System.Windows;
 using OsEngine.Charts.CandleChart;
 using OsEngine.Entity;
 using OsEngine.Language;
 using OsEngine.Market;
+using Chart = System.Windows.Forms.DataVisualization.Charting.Chart;
 
 namespace OsEngine.OsTrader.Gui
 {
@@ -124,6 +126,19 @@ namespace OsEngine.OsTrader.Gui
 
         private OsTraderMaster _strategyKeeper;
 
+        /// <summary>
+        /// get list of charts for by bot name
+        /// получить список чартов по имени бота
+        /// </summary>
+        /// <param name="botName">bot name / имя бота</param>
+        /// <returns>
+        /// chart, tab name, chart information / чарт, имя таба, информация о чарте
+        /// </returns>
+        public List<Tuple<Chart, string, string>> GetCharts(string botName)
+        {
+            return _strategyKeeper.GetCharts(botName);
+        }
+
 // main menu
 // главное меню 
 
@@ -157,9 +172,7 @@ namespace OsEngine.OsTrader.Gui
             decimal volume; 
             try
             {
-                volume = Convert.ToDecimal(TextBoxVolumeFast.Text.Replace(",",
-                        CultureInfo.InvariantCulture.NumberFormat.NumberDecimalSeparator),
-                    CultureInfo.InvariantCulture);
+                volume = TextBoxVolumeFast.Text.ToDecimal();
             }
             catch (Exception)
             {
@@ -174,9 +187,7 @@ namespace OsEngine.OsTrader.Gui
             decimal volume;
             try
             {
-                volume = Convert.ToDecimal(TextBoxVolumeFast.Text.Replace(",",
-                        CultureInfo.InvariantCulture.NumberFormat.NumberDecimalSeparator),
-                    CultureInfo.InvariantCulture);
+                volume = TextBoxVolumeFast.Text.ToDecimal();
             }
             catch (Exception)
             {
@@ -213,9 +224,7 @@ namespace OsEngine.OsTrader.Gui
 
             try
             {
-                price = Convert.ToDecimal(TextBoxPrice.Text.Replace(",",
-                        CultureInfo.InvariantCulture.NumberFormat.NumberDecimalSeparator),
-                    CultureInfo.InvariantCulture);
+                price = TextBoxPrice.Text.ToDecimal();
             }
             catch (Exception)
             {
@@ -237,9 +246,7 @@ namespace OsEngine.OsTrader.Gui
             decimal volume;
             try
             {
-                volume = Convert.ToDecimal(TextBoxVolumeFast.Text.Replace(",",
-                        CultureInfo.InvariantCulture.NumberFormat.NumberDecimalSeparator),
-                    CultureInfo.InvariantCulture);
+                volume = TextBoxVolumeFast.Text.ToDecimal();
             }
             catch (Exception)
             {
@@ -251,9 +258,7 @@ namespace OsEngine.OsTrader.Gui
 
             try
             {
-                price = Convert.ToDecimal(TextBoxPrice.Text.Replace(",",
-                        CultureInfo.InvariantCulture.NumberFormat.NumberDecimalSeparator),
-                    CultureInfo.InvariantCulture);
+                price = TextBoxPrice.Text.ToDecimal();
             }
             catch (Exception)
             {

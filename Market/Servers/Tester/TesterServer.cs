@@ -186,8 +186,10 @@ namespace OsEngine.Market.Servers.Tester
                     writer.WriteLine(_typeTesterData);
                     writer.WriteLine(_sourceDataType);
                     writer.WriteLine(_pathToFolder);
+                    writer.WriteLine(_slipageToStopOrder);
                     writer.WriteLine(_orderExecutionType);
                     writer.WriteLine(_profitMarketIsOn);
+
                     writer.Close();
                 }
             }
@@ -211,12 +213,18 @@ namespace OsEngine.Market.Servers.Tester
         /// в тестовом сервере не используется
         /// </summary>
         public void StopServer(){}
+       
+        /// <summary>
+        /// server time of last starting
+        /// время последнего старта сервера
+        /// </summary>
+        public DateTime LastStartServerTime { get; set; }
 
-// Managment
-// Управление
+        // Managment
+        // Управление
 
         /// <summary>
-		/// start testing
+        /// start testing
         /// начать тестирование
         /// </summary>
         public void TestingStart()
@@ -2864,6 +2872,10 @@ namespace OsEngine.Market.Servers.Tester
             if (frame == TimeFrame.Hour2)
             {
                 result = new TimeSpan(0, 2, 0, 0);
+            }
+            if (frame == TimeFrame.Hour4)
+            {
+                result = new TimeSpan(0, 4, 0, 0);
             }
             if (frame == TimeFrame.Min1)
             {

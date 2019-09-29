@@ -256,11 +256,7 @@ namespace OsEngine.Entity
                     _textBoxLimitPrice.Text = _lastSelectPrice.ToString(new CultureInfo("RU-ru"));
                 }
 
-                _lastSelectPrice =
-                    Convert.ToDecimal(
-                        _textBoxLimitPrice.Text.Replace(",",
-                            CultureInfo.InvariantCulture.NumberFormat.NumberDecimalSeparator),
-                        CultureInfo.InvariantCulture);
+                _lastSelectPrice = _textBoxLimitPrice.Text.ToDecimal();
             }
             catch (Exception error)
             {
@@ -289,7 +285,7 @@ namespace OsEngine.Entity
                     {
                         return;
                     }
-                    price = Convert.ToDecimal(_glassBox.Rows[_glassBox.CurrentCell.RowIndex].Cells[2].Value);
+                    price = _glassBox.Rows[_glassBox.CurrentCell.RowIndex].Cells[2].Value.ToString().ToDecimal();
                 }
                 catch (Exception)
                 {
@@ -467,8 +463,8 @@ namespace OsEngine.Entity
                 {
                     if (i < depth.Bids.Count)
                     {
-                        _glassBox.Rows[25 + i].Cells[2].Value = depth.Bids[i].Price;
-                        _glassBox.Rows[25 + i].Cells[3].Value = depth.Bids[i].Bid;
+                        _glassBox.Rows[25 + i].Cells[2].Value = depth.Bids[i].Price.ToString("G29");
+                        _glassBox.Rows[25 + i].Cells[3].Value = depth.Bids[i].Bid.ToString("G29");
                         if (depth.Bids[i].Bid > maxVol)
                         {
                             maxVol = depth.Bids[i].Bid;
@@ -489,8 +485,8 @@ namespace OsEngine.Entity
                 {
                     if (i < depth.Asks.Count)
                     {
-                        _glassBox.Rows[24 - i].Cells[2].Value = depth.Asks[i].Price;
-                        _glassBox.Rows[24 - i].Cells[3].Value = depth.Asks[i].Ask;
+                        _glassBox.Rows[24 - i].Cells[2].Value = depth.Asks[i].Price.ToString("G29");
+                        _glassBox.Rows[24 - i].Cells[3].Value = depth.Asks[i].Ask.ToString("G29");
 
                         if (depth.Asks[i].Ask > maxVol)
                         {
@@ -647,8 +643,8 @@ namespace OsEngine.Entity
 
                 if (ask != 0 && bid != 0)
                 {
-                    _glassBox.Rows[25].Cells[2].Value = bid;
-                    _glassBox.Rows[24].Cells[2].Value = ask;
+                    _glassBox.Rows[25].Cells[2].Value = bid.ToString("G29");
+                    _glassBox.Rows[24].Cells[2].Value = ask.ToString("G29");
                 }
             }
             catch (Exception error)

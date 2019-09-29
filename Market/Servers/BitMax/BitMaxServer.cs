@@ -309,26 +309,21 @@ namespace OsEngine.Market.Servers.BitMax
             {
                 newCandles.Add(new Candle()
                 {
-                    Open = Convert.ToDecimal(
-                        bitMaxCandle.o.Replace(",",
-                            CultureInfo.InvariantCulture.NumberFormat.NumberDecimalSeparator),
-                        CultureInfo.InvariantCulture),
-                    High = Convert.ToDecimal(
-                        bitMaxCandle.h.Replace(",",
-                            CultureInfo.InvariantCulture.NumberFormat.NumberDecimalSeparator),
-                        CultureInfo.InvariantCulture),
-                    Low = Convert.ToDecimal(
-                        bitMaxCandle.l.Replace(",",
-                            CultureInfo.InvariantCulture.NumberFormat.NumberDecimalSeparator),
-                        CultureInfo.InvariantCulture),
-                    Close = Convert.ToDecimal(
-                        bitMaxCandle.c.Replace(",",
-                            CultureInfo.InvariantCulture.NumberFormat.NumberDecimalSeparator),
-                        CultureInfo.InvariantCulture),
-                    Volume = Convert.ToDecimal(
-                        bitMaxCandle.v.Replace(",",
-                            CultureInfo.InvariantCulture.NumberFormat.NumberDecimalSeparator),
-                        CultureInfo.InvariantCulture),
+                    Open = 
+                        bitMaxCandle.o.ToDecimal()
+                    ,
+                    High = 
+                        bitMaxCandle.h.ToDecimal()
+                    ,
+                    Low = 
+                        bitMaxCandle.l.ToDecimal()
+                    ,
+                    Close = 
+                        bitMaxCandle.c.ToDecimal()
+                    ,
+                    Volume = 
+                        bitMaxCandle.v.ToDecimal()
+                    ,
                     TimeStart = TimeManager.GetDateTimeFromTimeStamp(Convert.ToInt64(bitMaxCandle.t.ToString().Replace(",",
                             CultureInfo.InvariantCulture.NumberFormat.NumberDecimalSeparator),
                         CultureInfo.InvariantCulture)),
@@ -475,26 +470,18 @@ namespace OsEngine.Market.Servers.BitMax
                 var needPortfolio = _portfolios.Find(p => p.Number == wallet.assetCode);
                 if (needPortfolio != null)
                 {
-                    needPortfolio.ValueCurrent = Convert.ToDecimal(
-                        wallet.totalAmount.Replace(".",
-                            CultureInfo.InvariantCulture.NumberFormat.NumberDecimalSeparator),
-                        CultureInfo.InvariantCulture);
-                    needPortfolio.ValueBlocked = Convert.ToDecimal(
-                        wallet.inOrderAmount.Replace(".",
-                            CultureInfo.InvariantCulture.NumberFormat.NumberDecimalSeparator),
-                        CultureInfo.InvariantCulture);
+                    needPortfolio.ValueCurrent =
+                        wallet.totalAmount.ToDecimal();
+                    needPortfolio.ValueBlocked = 
+                        wallet.inOrderAmount.ToDecimal();
                 }
                 else
                 {
-                    var valueCurrent = Convert.ToDecimal(
-                        wallet.totalAmount.Replace(".",
-                            CultureInfo.InvariantCulture.NumberFormat.NumberDecimalSeparator),
-                        CultureInfo.InvariantCulture);
+                    var valueCurrent = 
+                        wallet.totalAmount.ToDecimal();
 
-                    var valueBlocked = Convert.ToDecimal(
-                        wallet.inOrderAmount.Replace(".",
-                            CultureInfo.InvariantCulture.NumberFormat.NumberDecimalSeparator),
-                        CultureInfo.InvariantCulture);
+                    var valueBlocked = 
+                        wallet.inOrderAmount.ToDecimal();
                     if (valueCurrent != 0 || valueBlocked != 0)
                     {
                         _portfolios.Add(new Portfolio
@@ -528,49 +515,14 @@ namespace OsEngine.Market.Servers.BitMax
                 newSec.Decimals = product.priceScale;
                 newSec.SecurityType = SecurityType.CurrencyPair;
                 newSec.State = product.status == "Normal" ? SecurityStateType.Activ : SecurityStateType.Close;
-                newSec.Lot = GetValueByDecimals(product.qtyScale);
-                newSec.PriceStep = GetValueByDecimals(product.priceScale);
+                newSec.Lot = product.qtyScale.GetValueByDecimals();
+                newSec.PriceStep = product.priceScale.GetValueByDecimals();
                 newSec.PriceStepCost = newSec.PriceStep;
 
                 securities.Add(newSec);
             }
 
             SecurityEvent?.Invoke(securities);
-        }
-
-        /// <summary>
-        /// получить точность шкалы на основании количества знаков после запятой
-        /// </summary>
-        /// <param name="decimals">количество знаков после запятой</param>
-        private decimal GetValueByDecimals(int decimals)
-        {
-            switch (decimals)
-            {
-                case 0:
-                    return 1;
-                case 1:
-                    return 0.1m;
-                case 2:
-                    return 0.01m;
-                case 3:
-                    return 0.001m;
-                case 4:
-                    return 0.0001m;
-                case 5:
-                    return 0.00001m;
-                case 6:
-                    return 0.000001m;
-                case 7:
-                    return 0.0000001m;
-                case 8:
-                    return 0.00000001m;
-                case 9:
-                    return 0.000000001m;
-                case 10:
-                    return 0.0000000001m;
-                default:
-                    return 0;
-            }
         }
 
         /// <summary>
@@ -597,15 +549,12 @@ namespace OsEngine.Market.Servers.BitMax
                     Trade newTrade = new Trade();
                     newTrade.SecurityNameCode = trades.s.Replace('/', '-');
                     newTrade.Price =
-                        Convert.ToDecimal(
-                            trade.p.Replace(".", CultureInfo.InvariantCulture.NumberFormat.NumberDecimalSeparator),
-                            CultureInfo.InvariantCulture);
+                            trade.p.ToDecimal();
+
                     newTrade.Id = trade.t.ToString();
                     newTrade.Time = new DateTime(1970, 1, 1).AddMilliseconds(Convert.ToDouble(trade.t));
                     newTrade.Volume =
-                        Convert.ToDecimal(
-                            trade.q.Replace(".", CultureInfo.InvariantCulture.NumberFormat.NumberDecimalSeparator),
-                            CultureInfo.InvariantCulture);
+                            trade.q.ToDecimal();
                     newTrade.Side = trade.bm == true ? Side.Sell : Side.Buy;
 
                     ServerTime = newTrade.Time;
@@ -663,17 +612,13 @@ namespace OsEngine.Market.Servers.BitMax
 
                     for (int i = 0; i < bitMaxDepth.asks.Count; i++)
                     {
-                        var needPrice = Convert.ToDecimal(
-                            bitMaxDepth.asks[i][0].Replace(",",
-                                CultureInfo.InvariantCulture.NumberFormat.NumberDecimalSeparator),
-                            CultureInfo.InvariantCulture);
+                        var needPrice = 
+                            bitMaxDepth.asks[i][0].ToDecimal();
 
                         var needLevel = needDepth.Asks.Find(l => l.Price == needPrice);
 
-                        var qty = Convert.ToDecimal(
-                            bitMaxDepth.asks[i][1].Replace(",",
-                                CultureInfo.InvariantCulture.NumberFormat.NumberDecimalSeparator),
-                            CultureInfo.InvariantCulture);
+                        var qty = 
+                            bitMaxDepth.asks[i][1].ToDecimal();
 
                         if (needLevel != null)
                         {
@@ -709,17 +654,13 @@ namespace OsEngine.Market.Servers.BitMax
 
                     for (int i = 0; i < bitMaxDepth.bids.Count; i++)
                     {
-                        var needPrice = Convert.ToDecimal(
-                            bitMaxDepth.bids[i][0].Replace(",",
-                                CultureInfo.InvariantCulture.NumberFormat.NumberDecimalSeparator),
-                            CultureInfo.InvariantCulture);
+                        var needPrice = 
+                            bitMaxDepth.bids[i][0].ToDecimal();
 
                         var needLevel = needDepth.Bids.Find(l => l.Price == needPrice);
 
-                        var qty = Convert.ToDecimal(
-                            bitMaxDepth.bids[i][1].Replace(",",
-                                CultureInfo.InvariantCulture.NumberFormat.NumberDecimalSeparator),
-                            CultureInfo.InvariantCulture);
+                        var qty = 
+                            bitMaxDepth.bids[i][1].ToDecimal();
 
                         if (needLevel != null)
                         {
@@ -848,10 +789,8 @@ namespace OsEngine.Market.Servers.BitMax
 
             if (bitMaxOrder.status == "PartiallyFilled" || bitMaxOrder.status == "Filled")
             {
-                var partialVolume = Convert.ToDecimal(
-                    bitMaxOrder.f.Replace(",",
-                        CultureInfo.InvariantCulture.NumberFormat.NumberDecimalSeparator),
-                    CultureInfo.InvariantCulture);
+                var partialVolume = 
+                    bitMaxOrder.f.ToDecimal();
 
                 var tradeVolume = partialVolume - needCoupler.CurrentVolume;
                 needCoupler.CurrentVolume += tradeVolume;
@@ -862,10 +801,9 @@ namespace OsEngine.Market.Servers.BitMax
                     Side = bitMaxOrder.side == "Sell" ? Side.Sell : Side.Buy,
                     NumberPosition = bitMaxOrder.coid,
                     SecurityNameCode = bitMaxOrder.s.Replace('/', '-'),
-                    Price = Convert.ToDecimal(
-                        bitMaxOrder.p.Replace(",",
-                            CultureInfo.InvariantCulture.NumberFormat.NumberDecimalSeparator),
-                        CultureInfo.InvariantCulture),
+                    Price = 
+                        bitMaxOrder.p.ToDecimal()
+                    ,
                     Volume = tradeVolume,
                     NumberTrade = Guid.NewGuid().ToString(),
                     Time = TimeManager.GetDateTimeFromTimeStamp(Convert.ToInt64(bitMaxOrder.t)),
@@ -878,14 +816,10 @@ namespace OsEngine.Market.Servers.BitMax
             order.NumberUser = needCoupler.OsOrderNumberUser;
             order.NumberMarket = bitMaxOrder.coid;
             order.PortfolioNumber = bitMaxOrder.s.Split('/')[1];
-            order.Price = Convert.ToDecimal(
-                bitMaxOrder.p.Replace(",",
-                    CultureInfo.InvariantCulture.NumberFormat.NumberDecimalSeparator),
-                CultureInfo.InvariantCulture);
-            order.Volume = Convert.ToDecimal(
-                bitMaxOrder.q.Replace(",",
-                    CultureInfo.InvariantCulture.NumberFormat.NumberDecimalSeparator),
-                CultureInfo.InvariantCulture);
+            order.Price = 
+                bitMaxOrder.p.ToDecimal();
+            order.Volume = 
+                bitMaxOrder.q.ToDecimal();
             order.Side = bitMaxOrder.side == "Sell" ? Side.Sell : Side.Buy;
             order.SecurityNameCode = bitMaxOrder.s.Replace('/', '-');
             order.ServerType = ServerType;

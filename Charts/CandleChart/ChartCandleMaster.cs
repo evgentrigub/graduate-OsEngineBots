@@ -76,6 +76,10 @@ namespace OsEngine.Charts.CandleChart
 
                         string[] indicator = readerStr.Split('@');
 
+                        if (indicator[0] == "StochRsi")
+                        {
+                            CreateIndicator(new StochRsi(indicator[1], Convert.ToBoolean(indicator[3])), indicator[2]);
+                        }
                         if (indicator[0] == "Vwap")
                         {
                             CreateIndicator(new Vwap(indicator[1], Convert.ToBoolean(indicator[3])), indicator[2]);
@@ -1380,6 +1384,33 @@ namespace OsEngine.Charts.CandleChart
         private System.Windows.Controls.Label _label;
 
         private System.Windows.Controls.Grid _grid;
+
+        /// <summary>
+        /// get chart information
+        /// получить информацию о чарте
+        /// </summary>
+        public string GetChartLabel()
+        {
+            string security = _securityOnThisChart;
+
+            if (string.IsNullOrEmpty(security))
+            {
+                security = "Unknown";
+            }
+
+            string label = _serverType.ToString();
+
+            if (_timeFrameBuilder.CandleCreateMethodType == CandleCreateMethodType.Simple)
+            {
+                label += " / " + security + " / " + _timeFrameSecurity;
+            }
+            else
+            {
+                label += " / " + security + " / " + _timeFrameBuilder.CandleCreateMethodType;
+            }
+
+            return label;
+        }
 
         private void PaintLabelOnSlavePanel()
         {

@@ -150,7 +150,7 @@ namespace OsEngine.Market.Servers.Transaq
         public event Action DisconnectEvent;
 
         TransaqClient _client;
-        
+
         #region requests / запросы
 
         private CancellationTokenSource _cancellationTokenSource;
@@ -207,7 +207,7 @@ namespace OsEngine.Market.Servers.Transaq
 
                 ChangeTransaqPassword changeTransaqPasswordWindow = new ChangeTransaqPassword(message, this);
                 changeTransaqPasswordWindow.ShowDialog();
-            });            
+            });
         }
 
         /// <summary>
@@ -259,7 +259,7 @@ namespace OsEngine.Market.Servers.Transaq
                 Thread.Sleep(15000);
             }
         }
-        
+
         /// <summary>
         /// dispose API
         /// освободить апи
@@ -309,7 +309,6 @@ namespace OsEngine.Market.Servers.Transaq
         /// </summary>
         public void GetPortfolios()
         {
-
             // <command id="get_united_portfolio" client="код клиента" union="код юниона" />
             if (_clients == null || _clients.Count == 0)
             {
@@ -326,7 +325,7 @@ namespace OsEngine.Market.Servers.Transaq
         }
 
         private void CycleGettingPortfolios()
-        {            
+        {
             while (!_cancellationToken.IsCancellationRequested)
             {
                 if (ServerInWork == false)
@@ -376,7 +375,7 @@ namespace OsEngine.Market.Servers.Transaq
                     }
 
                     Thread.Sleep(10000);
-                }                
+                }
             }
         }
 
@@ -392,10 +391,24 @@ namespace OsEngine.Market.Servers.Transaq
         /// </summary>
         public void SendOrder(Order order)
         {
+            var needPortfolio = _portfolios.Find(p => p.Number == order.PortfolioNumber);
+
+            if (needPortfolio == null)
+            {
+                SendLogMessage("Портфель для операций не найден ", LogMessageType.Error);
+                return;
+            }
+
+            if (needPortfolio.ValueCurrent == 0)
+            {
+                SendLogMessage("Ошибка выставления ордера, отсутствуют средства на счете ", LogMessageType.Error);
+                return;
+            }
+
             string side = order.Side == Side.Buy ? "B" : "S";
 
             var needSec = _securities.Find(s => s.Name == order.SecurityNameCode);
-                
+
             string cmd = "<command id=\"neworder\">";
             cmd += "<security>";
             cmd += "<board>" + needSec.NameClass + "</board>";
@@ -419,16 +432,16 @@ namespace OsEngine.Market.Servers.Transaq
             {
                 data = (Result)formatter.Deserialize(fs);
             }
-            
+
             //<result success="true" transactionid="12445626"/>
             if (data.Success != "true")
             {
-                order.State = OrderStateType.Fail;                
+                order.State = OrderStateType.Fail;
             }
             else
-            {                            
+            {
                 order.NumberUser = int.Parse(data.Transactionid);
-                order.State = OrderStateType.Pending;                
+                order.State = OrderStateType.Pending;
             }
             order.TimeCallBack = ServerTime;
 
@@ -564,7 +577,7 @@ namespace OsEngine.Market.Servers.Transaq
                 Thread.Sleep(1000);
             }
 
-            SendLogMessage( OsLocalization.Market.Message95 + security.Name, LogMessageType.Error);
+            SendLogMessage(OsLocalization.Market.Message95 + security.Name, LogMessageType.Error);
         }
 
         private List<Candle> ParseCandles(Candles candles)
@@ -764,6 +777,10 @@ namespace OsEngine.Market.Servers.Transaq
                     newTf = 1440;
                     oldTf = 60;
                     return "4";
+                case TimeFrame.Hour4:
+                    newTf = 240;
+                    oldTf = 60;
+                    return "4";
                 default:
                     newTf = 0;
                     oldTf = 0;
@@ -832,6 +849,7 @@ namespace OsEngine.Market.Servers.Transaq
                     Number = unitedPortfolio.Union,
                     ValueBegin = Convert.ToDecimal(unitedPortfolio.Open_equity.Replace(".", ",")),
                     ValueCurrent = Convert.ToDecimal(unitedPortfolio.Equity.Replace(".", ",")),
+                    ValueBlocked = Convert.ToDecimal(unitedPortfolio.Init_req.Replace(".", ",")),
                 };
                 _portfolios.Add(needPortfolio);
             }
@@ -839,6 +857,7 @@ namespace OsEngine.Market.Servers.Transaq
             {
                 needPortfolio.ValueBegin = Convert.ToDecimal(unitedPortfolio.Open_equity.Replace(".", ","));
                 needPortfolio.ValueCurrent = Convert.ToDecimal(unitedPortfolio.Equity.Replace(".", ","));
+                needPortfolio.ValueBlocked = Convert.ToDecimal(unitedPortfolio.Init_req.Replace(".", ","));
             }
 
             needPortfolio.ClearPositionOnBoard();
@@ -874,11 +893,6 @@ namespace OsEngine.Market.Servers.Transaq
         /// </summary>
         private void ClientOnUpdateMonoPortfolio(Clientlimits clientLimits)
         {
-            if (clientLimits.Money_current == null)
-            {
-                return;
-            }
-
             if (_portfolios == null)
             {
                 _portfolios = new List<Portfolio>();
@@ -888,23 +902,48 @@ namespace OsEngine.Market.Servers.Transaq
 
             if (needPortfolio == null)
             {
-                needPortfolio = new Portfolio()
+                if (clientLimits.Money_current == null)
                 {
-                    Number = clientLimits.Client,
-                    ValueBegin = Convert.ToDecimal(clientLimits.Money_current.Replace(".", ",")),
-                    ValueCurrent = Convert.ToDecimal(clientLimits.Money_current.Replace(".", ",")),
-                    ValueBlocked = Convert.ToDecimal(clientLimits.Money_current.Replace(".", ",")) - Convert.ToDecimal(clientLimits.Money_free.Replace(".", ",")),
-                };
+                    needPortfolio = new Portfolio()
+                    {
+                        Number = clientLimits.Client,
+                        ValueBegin = 0,
+                        ValueCurrent = 0,
+                        ValueBlocked = 0,
+                    };
+                }
+                else
+                {
+                    needPortfolio = new Portfolio()
+                    {
+                        Number = clientLimits.Client,
+                        ValueBegin = Convert.ToDecimal(clientLimits.Money_current.Replace(".", ",")),
+                        ValueCurrent = Convert.ToDecimal(clientLimits.Money_free.Replace(".", ",")),
+                        ValueBlocked = _blocked,
+                    };
+                }
+
                 _portfolios.Add(needPortfolio);
             }
             else
             {
-                needPortfolio.ValueBegin = Convert.ToDecimal(clientLimits.Money_current.Replace(".", ","));
-                needPortfolio.ValueCurrent = Convert.ToDecimal(clientLimits.Money_current.Replace(".", ","));
-                needPortfolio.ValueBlocked = needPortfolio.ValueCurrent - Convert.ToDecimal(clientLimits.Money_free.Replace(".", ","));
+                if (clientLimits.Money_current == null)
+                {
+                    needPortfolio.ValueBegin = 0;
+                    needPortfolio.ValueCurrent = 0;
+                    needPortfolio.ValueBlocked = 0;
+                }
+                else
+                {
+                    needPortfolio.ValueBegin = Convert.ToDecimal(clientLimits.Money_current.Replace(".", ","));
+                    needPortfolio.ValueCurrent = Convert.ToDecimal(clientLimits.Money_free.Replace(".", ","));
+                    needPortfolio.ValueBlocked = _blocked;
+                }
             }
             PortfolioEvent?.Invoke(_portfolios);
         }
+
+        private decimal _blocked = 0;
 
         /// <summary>
         /// updated position
@@ -921,6 +960,11 @@ namespace OsEngine.Market.Servers.Transaq
                 _portfolios = new List<Portfolio>();
             }
 
+            if (transaqPositions.Forts_money != null)
+            {
+                _blocked = Convert.ToDecimal(transaqPositions.Forts_money.Blocked.Replace(".", ","));
+            }
+
             if (transaqPositions.Forts_position.Count == 0)
             {
                 foreach (var portfolio in _portfolios)
@@ -934,18 +978,20 @@ namespace OsEngine.Market.Servers.Transaq
                 {
                     var needPortfolio = _portfolios.Find(p => p.Number == fortsPosition.Client);
 
-                    PositionOnBoard pos = new PositionOnBoard()
+                    if (needPortfolio != null)
                     {
-                        SecurityNameCode = fortsPosition.Seccode,
-                        ValueBegin = Convert.ToDecimal(fortsPosition.Startnet.Replace(".", ",")),
-                        ValueCurrent = Convert.ToDecimal(fortsPosition.Totalnet.Replace(".", ",")),
-                        ValueBlocked = Convert.ToDecimal(fortsPosition.Openbuys.Replace(".", ",")) +
-                                        Convert.ToDecimal(fortsPosition.Opensells.Replace(".", ",")),
-                        PortfolioName = needPortfolio.Number,
+                        PositionOnBoard pos = new PositionOnBoard()
+                        {
+                            SecurityNameCode = fortsPosition.Seccode,
+                            ValueBegin = Convert.ToDecimal(fortsPosition.Startnet.Replace(".", ",")),
+                            ValueCurrent = Convert.ToDecimal(fortsPosition.Totalnet.Replace(".", ",")),
+                            ValueBlocked = Convert.ToDecimal(fortsPosition.Openbuys.Replace(".", ",")) +
+                                           Convert.ToDecimal(fortsPosition.Opensells.Replace(".", ",")),
+                            PortfolioName = needPortfolio.Number,
 
-                    };
-                    needPortfolio.SetNewPosition(pos);
-
+                        };
+                        needPortfolio.SetNewPosition(pos);
+                    }
                 }
             }
 
@@ -974,19 +1020,29 @@ namespace OsEngine.Market.Servers.Transaq
         /// </summary>
         private void ClientOnUpdateSecurityInfo(SecurityInfo securityInfo)
         {
-            var needSec = _securities.Find(s => s.Name == securityInfo.Seccode);
-            if (needSec != null)
+            try
             {
-                if (needSec.SecurityType == SecurityType.Option)
+                var needSec = _securities.Find(s => s.Name == securityInfo.Seccode);
+                if (needSec != null)
                 {
-                    needSec.Go = Convert.ToDecimal(securityInfo.Bgo_nc.Replace(".", CultureInfo.InvariantCulture.NumberFormat.NumberDecimalSeparator),CultureInfo.InvariantCulture);
+                    if (needSec.SecurityType == SecurityType.Option && securityInfo.Bgo_nc != null)
+                    {
+                        needSec.Go = securityInfo.Bgo_nc.ToDecimal();
+                    }
+                    else if (needSec.SecurityType == SecurityType.Futures && securityInfo.Sell_deposit != null)
+                    {
+                        needSec.Go = securityInfo.Sell_deposit.ToDecimal();
+                        if (securityInfo.Maxprice != null && securityInfo.Minprice != null)
+                        {
+                            needSec.PriceLimitHigh = securityInfo.Maxprice.ToDecimal();
+                            needSec.PriceLimitLow = securityInfo.Minprice.ToDecimal();
+                        }
+                    }
                 }
-                else if (needSec.SecurityType == SecurityType.Futures)
-                {
-                    needSec.Go = Convert.ToDecimal(securityInfo.Buy_deposit.Replace(".", CultureInfo.InvariantCulture.NumberFormat.NumberDecimalSeparator), CultureInfo.InvariantCulture);
-                    needSec.PriceLimitHigh = Convert.ToDecimal(securityInfo.Maxprice.Replace(".", CultureInfo.InvariantCulture.NumberFormat.NumberDecimalSeparator), CultureInfo.InvariantCulture);
-                    needSec.PriceLimitLow = Convert.ToDecimal(securityInfo.Minprice.Replace(".", CultureInfo.InvariantCulture.NumberFormat.NumberDecimalSeparator), CultureInfo.InvariantCulture);
-                }
+            }
+            catch (Exception e)
+            {
+                SendLogMessage("Ошибка обновления инструментов " + e, LogMessageType.Error);
             }
         }
 
@@ -1026,18 +1082,14 @@ namespace OsEngine.Market.Servers.Transaq
                         : SecurityType.None;
 
 
-                    security.Lot = Convert.ToDecimal(securityData.Lotsize.Replace(".", CultureInfo.InvariantCulture.NumberFormat.NumberDecimalSeparator),
-                        CultureInfo.InvariantCulture);
+                    security.Lot = securityData.Lotsize.ToDecimal();
 
-                    security.PriceStep = Convert.ToDecimal(securityData.Minstep.Replace(".", CultureInfo.InvariantCulture.NumberFormat.NumberDecimalSeparator),
-                        CultureInfo.InvariantCulture);
+                    security.PriceStep = securityData.Minstep.ToDecimal();
 
                     decimal pointCost;
                     try
                     {
-                        pointCost = Convert.ToDecimal(securityData.Point_cost.Replace(
-                                ".", CultureInfo.InvariantCulture.NumberFormat.NumberDecimalSeparator),
-                            CultureInfo.InvariantCulture);
+                        pointCost = securityData.Point_cost.ToDecimal();
                     }
                     catch (Exception e)
                     {
@@ -1255,7 +1307,7 @@ namespace OsEngine.Market.Servers.Transaq
                     {
                         //continue;
                     }
-                
+
                     Order newOrder = new Order();
                     newOrder.SecurityNameCode = order.Seccode;
                     newOrder.NumberUser = Convert.ToInt32(order.Transactionid);
@@ -1265,11 +1317,11 @@ namespace OsEngine.Market.Servers.Transaq
                     newOrder.Volume = Convert.ToDecimal(order.Quantity);
                     newOrder.Price = Convert.ToDecimal(order.Price.Replace(".", ","));
                     newOrder.ServerType = ServerType.Transaq;
-                    newOrder.PortfolioNumber = _isMono? order.Client : order.Union;
+                    newOrder.PortfolioNumber = _isMono ? order.Client : order.Union;
 
                     if (order.Status == "active")
                     {
-                        newOrder.State = OrderStateType.Activ;                       
+                        newOrder.State = OrderStateType.Activ;
                     }
                     else if (order.Status == "cancelled" ||
                              order.Status == "expired" ||
@@ -1325,8 +1377,8 @@ namespace OsEngine.Market.Servers.Transaq
                 myTrade.Time = DateTime.Parse(trade.Time);
                 myTrade.NumberOrderParent = trade.Orderno;
                 myTrade.NumberTrade = trade.Tradeno;
-                myTrade.Volume = Convert.ToDecimal(trade.Quantity.Replace(".", CultureInfo.InvariantCulture.NumberFormat.NumberDecimalSeparator), CultureInfo.InvariantCulture);
-                myTrade.Price = Convert.ToDecimal(trade.Price.Replace(".", CultureInfo.InvariantCulture.NumberFormat.NumberDecimalSeparator), CultureInfo.InvariantCulture);
+                myTrade.Volume = trade.Quantity.ToDecimal();
+                myTrade.Price = trade.Price.ToDecimal();
                 myTrade.SecurityNameCode = trade.Seccode;
                 myTrade.Side = trade.Buysell == "B" ? Side.Buy : Side.Sell;
 

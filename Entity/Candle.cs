@@ -113,6 +113,91 @@ namespace OsEngine.Entity
         }
 
         /// <summary>
+        /// if type of that candle is doji (indecision in the market, Close = Open)
+        /// если тип этой свечи доджи (нерешительность на рынке, Close = Open)
+        /// </summary>
+        public bool IsDoji
+        {
+            get
+            {
+                if (Close == Open)
+                {
+                    return true;
+                }
+                return false;
+            }
+        }
+
+        /// <summary>
+        /// shadow top
+        /// тень сверху
+        /// </summary>
+        public decimal ShadowTop
+        {
+            get
+            {
+                if (IsUp)
+                {
+                    return High - Close;
+                }
+                else
+                {
+                    return High - Open;
+                }
+            }
+        }
+
+        /// <summary>
+        /// shadow bottom
+        /// тень снизу
+        /// </summary>
+        public decimal ShadowBottom
+        {
+            get
+            {
+                if (IsUp)
+                {
+                    return Open - Low;
+                }
+                else
+                {
+                    return Close - Low;
+                }
+            }
+        }
+
+        /// <summary>
+        /// candle body with shadows
+        /// тело свечи с учетом теней
+        /// </summary>
+        public decimal ShadowBody
+        {
+            get
+            {
+                return High - Low;
+            }
+        }
+
+        /// <summary>
+        /// candle body without shadows
+        /// тело свечи без учета теней
+        /// </summary>
+        public decimal Body
+        {
+            get
+            {
+                if (IsUp)
+                {
+                    return Close - Open;
+                }
+                else
+                {
+                    return Open - Close;
+                }
+            }
+        }
+
+        /// <summary>
         /// to load the status of the candlestick from the line
         /// загрузить состояние свечи из строки
         /// </summary>
@@ -133,14 +218,14 @@ namespace OsEngine.Entity
 
             TimeStart = new DateTime(year, month, day, hour, minute, second);
 
-            Open = Convert.ToDecimal(sIn[2].Replace(",", CultureInfo.InvariantCulture.NumberFormat.NumberDecimalSeparator), CultureInfo.InvariantCulture);
-            High = Convert.ToDecimal(sIn[3].Replace(",", CultureInfo.InvariantCulture.NumberFormat.NumberDecimalSeparator), CultureInfo.InvariantCulture);
-            Low = Convert.ToDecimal(sIn[4].Replace(",", CultureInfo.InvariantCulture.NumberFormat.NumberDecimalSeparator), CultureInfo.InvariantCulture);
-            Close = Convert.ToDecimal(sIn[5].Replace(",", CultureInfo.InvariantCulture.NumberFormat.NumberDecimalSeparator), CultureInfo.InvariantCulture);
+            Open = sIn[2].ToDecimal();
+            High = sIn[3].ToDecimal();
+            Low = sIn[4].ToDecimal();
+            Close = sIn[5].ToDecimal();
 
             try
             {
-                Volume = Convert.ToDecimal(sIn[6].Replace(",", CultureInfo.InvariantCulture.NumberFormat.NumberDecimalSeparator), CultureInfo.InvariantCulture);
+                Volume = sIn[6].ToDecimal();
             }
             catch (Exception)
             {

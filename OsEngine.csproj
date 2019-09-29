@@ -74,13 +74,16 @@
       <HintPath>bin\Debug\LmaxClientLibrary.dll</HintPath>
     </Reference>
     <Reference Include="Microsoft.CSharp" />
-    <Reference Include="Newtonsoft.Json, Version=4.5.0.0, Culture=neutral, PublicKeyToken=30ad4fe6b2a6aeed, processorArchitecture=MSIL">
+    <Reference Include="Newtonsoft.Json, Version=9.0.0.0, Culture=neutral, PublicKeyToken=30ad4fe6b2a6aeed, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
       <HintPath>bin\Debug\Newtonsoft.Json.dll</HintPath>
     </Reference>
     <Reference Include="OandaV20, Version=1.0.6457.18210, Culture=neutral, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
       <HintPath>..\..\..\OsEngineTepm\7 OANDA\OandaV20-master\OkonkwoOandaV20\OkonkwoOandaV20\bin\Debug\OandaV20.dll</HintPath>
+    </Reference>
+    <Reference Include="protobuf-net">
+      <HintPath>..\..\..\Роботы на заказ\62 Ликвидность BShort\devAzure\OsEngine\bin\Debug\protobuf-net.dll</HintPath>
     </Reference>
     <Reference Include="PusherClient">
       <HintPath>..\..\..\OsEngineTepm\12BitStamp\pusher-websocket-dotnet-master\pusher-websocket-dotnet-master\PusherClient\bin\Debug\PusherClient.dll</HintPath>
@@ -107,6 +110,9 @@
     <Reference Include="System.Core" />
     <Reference Include="System.Xaml">
       <RequiredTargetFramework>4.0</RequiredTargetFramework>
+    </Reference>
+    <Reference Include="websocket-sharp">
+      <HintPath>..\..\..\Роботы на заказ\62 Ликвидность BShort\devAzure\OsEngine\bin\Debug\websocket-sharp.dll</HintPath>
     </Reference>
     <Reference Include="WebSocket4Net">
       <HintPath>..\..\..\OsEngineTepm\12BitStamp\pusher-websocket-dotnet-master\pusher-websocket-dotnet-master\PusherClient\bin\Debug\WebSocket4Net.dll</HintPath>
@@ -275,6 +281,10 @@
     <Compile Include="Charts\CandleChart\Indicators\StochasticOscillatorUi.xaml.cs">
       <DependentUpon>StochasticOscillatorUi.xaml</DependentUpon>
     </Compile>
+    <Compile Include="Charts\CandleChart\Indicators\StochRsi.cs" />
+    <Compile Include="Charts\CandleChart\Indicators\StochRsiUi.xaml.cs">
+      <DependentUpon>StochRsiUi.xaml</DependentUpon>
+    </Compile>
     <Compile Include="Charts\CandleChart\Indicators\TradeThread.cs" />
     <Compile Include="Charts\CandleChart\Indicators\Trix.cs" />
     <Compile Include="Charts\CandleChart\Indicators\TrixUi.xaml.cs">
@@ -313,6 +323,7 @@
     </Compile>
     <Compile Include="Entity\CandleConverter.cs" />
     <Compile Include="Entity\DataGridFactory.cs" />
+    <Compile Include="Entity\Extensions.cs" />
     <Compile Include="Entity\HorizontalVolume.cs" />
     <Compile Include="Entity\MarketDepthPainter.cs" />
     <Compile Include="Entity\ProxyHolder.cs" />
@@ -345,10 +356,15 @@
     <Compile Include="Logging\LogErrorUi.xaml.cs">
       <DependentUpon>LogErrorUi.xaml</DependentUpon>
     </Compile>
+    <Compile Include="Logging\ServerWebhookUi.xaml.cs">
+      <DependentUpon>ServerWebhookUi.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="Logging\ServerWebhook.cs" />
     <Compile Include="Market\Servers\AServer.cs" />
     <Compile Include="Market\Servers\AServerParameterUi.xaml.cs">
       <DependentUpon>AServerParameterUi.xaml</DependentUpon>
     </Compile>
+    <Compile Include="Market\Servers\AServerRealization.cs" />
     <Compile Include="Market\Servers\AServerTests.cs" />
     <Compile Include="Market\Servers\AstsBridge\AstsBridgeWrapper.cs" />
     <Compile Include="Market\Servers\AstsBridge\AstsBridgeServer.cs" />
@@ -397,6 +413,8 @@
     <Compile Include="Market\Servers\Entity\OrderSender.cs" />
     <Compile Include="Market\Servers\Entity\PositionOnBoardSander.cs" />
     <Compile Include="Market\Servers\Entity\ServerParameter.cs" />
+    <Compile Include="Market\Servers\ExMo\ExmoClient.cs" />
+    <Compile Include="Market\Servers\ExMo\ExmoServer.cs" />
     <Compile Include="Market\Servers\Finam\FinamServer.cs" />
     <Compile Include="Market\Servers\Finam\FinamServerUi.xaml.cs">
       <DependentUpon>FinamServerUi.xaml</DependentUpon>
@@ -405,6 +423,12 @@
     <Compile Include="Market\Servers\FixProtocolEntities\FixEntity.cs" />
     <Compile Include="Market\Servers\FixProtocolEntities\FixMessage.cs" />
     <Compile Include="Market\Servers\FixProtocolEntities\StandartHeaderSettings.cs" />
+    <Compile Include="Market\Servers\GateIo\EntityCreators\GateMarketDepthCreator.cs" />
+    <Compile Include="Market\Servers\GateIo\EntityCreators\GateOrderCreator.cs" />
+    <Compile Include="Market\Servers\GateIo\EntityCreators\GatePortfolioCreator.cs" />
+    <Compile Include="Market\Servers\GateIo\EntityCreators\GateSecurityCreator.cs" />
+    <Compile Include="Market\Servers\GateIo\EntityCreators\GateTradesCreator.cs" />
+    <Compile Include="Market\Servers\GateIo\GateIoServer.cs" />
     <Compile Include="Market\Servers\InteractivBrokers\IbClient.cs" />
     <Compile Include="Market\Servers\InteractivBrokers\IbContractStorageUi.xaml.cs">
       <DependentUpon>IbContractStorageUi.xaml</DependentUpon>
@@ -418,12 +442,16 @@
     <Compile Include="Market\Servers\Kraken\KrakenEntity\EnumerableExtensions.cs" />
     <Compile Include="Market\Servers\Kraken\KrakenEntity\KrakenClient.cs" />
     <Compile Include="Market\Servers\Kraken\KrakenEntity\KrakenOrder.cs" />
-    <Compile Include="Market\Servers\Kraken\KrakenEntity\RateGate.cs" />
+    <Compile Include="Market\Servers\Entity\RateGate.cs" />
     <Compile Include="Market\Servers\Kraken\KrakenServerClient.cs" />
     <Compile Include="Market\Servers\Kraken\KrakenServer.cs" />
     <Compile Include="Market\Servers\Kraken\KrakenServerUi.xaml.cs">
       <DependentUpon>KrakenServerUi.xaml</DependentUpon>
     </Compile>
+    <Compile Include="Market\Servers\Livecoin\LivecoinClient.cs" />
+    <Compile Include="Market\Servers\Livecoin\LivecoinEntity\LivecoinEntity.cs" />
+    <Compile Include="Market\Servers\Livecoin\LivecoinEntity\protobuf\ProtoB.cs" />
+    <Compile Include="Market\Servers\Livecoin\LivecoinServer.cs" />
     <Compile Include="Market\Servers\Lmax\LmaxEntity\FixMessageCreator.cs" />
     <Compile Include="Market\Servers\Lmax\LmaxEntity\FixMessageParser.cs" />
     <Compile Include="Market\Servers\Lmax\LmaxEntity\RejectReasons.cs" />
@@ -515,6 +543,16 @@
     <Compile Include="Market\Servers\Transaq\TransaqEntity\TransaqPortfolio.cs" />
     <Compile Include="Market\Servers\Transaq\TransaqEntity\TransaqPositions.cs" />
     <Compile Include="Market\Servers\Transaq\TransaqServer.cs" />
+    <Compile Include="Market\Servers\ZB\EntityCreators\ZbMarketDepthCreator.cs" />
+    <Compile Include="Market\Servers\ZB\EntityCreators\ZbOrderCreator.cs" />
+    <Compile Include="Market\Servers\ZB\EntityCreators\ZbPortfolioCreator.cs" />
+    <Compile Include="Market\Servers\ZB\EntityCreators\ZbSecurityCreator.cs" />
+    <Compile Include="Market\Servers\ZB\EntityCreators\ZbTradesCreator.cs" />
+    <Compile Include="Market\Servers\ZB\ZBServer.cs" />
+    <Compile Include="Market\Services\BaseMarketDepthUpdater.cs" />
+    <Compile Include="Market\Services\CandlesCreator.cs" />
+    <Compile Include="Market\Services\RestChannel.cs" />
+    <Compile Include="Market\Services\WsSource.cs" />
     <Compile Include="OsMiner\OsMinerMaster.cs" />
     <Compile Include="OsMiner\OsMinerSet.cs" />
     <Compile Include="OsMiner\OsMinerSetUi.xaml.cs">
@@ -585,11 +623,11 @@
     <Compile Include="OsTrader\Panels\PanelsGui\BollingerOutburstUi.xaml.cs">
       <DependentUpon>BollingerOutburstUi.xaml</DependentUpon>
     </Compile>
+    <Compile Include="Robots\MyBots\Arbitrage.cs" />
     <Compile Include="Robots\BotFactory.cs" />
     <Compile Include="Robots\CounterTrend\ClusterCountertrend.cs" />
-    <Compile Include="Robots\High Frequency\HighFrequencyTrader.cs" />
-    <Compile Include="Robots\MyBots\Arbitrage.cs" />
     <Compile Include="Robots\MyBots\GAP.cs" />
+    <Compile Include="Robots\High Frequency\HighFrequencyTrader.cs" />
     <Compile Include="Robots\MyBots\MomentumMT%28MACD%29.cs" />
     <Compile Include="Robots\MyBots\MomentumMT%28pure%29.cs" />
     <Compile Include="Robots\MyBots\MomentumMT%28stopLoss%29.cs" />
@@ -880,6 +918,10 @@
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>
+    <Page Include="Charts\CandleChart\Indicators\StochRsiUi.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
     <Page Include="Charts\CandleChart\Indicators\TrixUi.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
@@ -927,6 +969,10 @@
     <Page Include="Logging\LogErrorUi.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="Logging\ServerWebhookUi.xaml">
+      <Generator>MSBuild:Compile</Generator>
+      <SubType>Designer</SubType>
     </Page>
     <Page Include="Market\Servers\AServerParameterUi.xaml">
       <SubType>Designer</SubType>

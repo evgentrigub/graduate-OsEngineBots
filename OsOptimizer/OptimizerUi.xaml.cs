@@ -592,7 +592,7 @@ namespace OsEngine.OsOptimizer
 
             DataGridViewColumn column = new DataGridViewColumn();
             column.CellTemplate = cell0;
-            column.HeaderText = OsLocalization.Optimizer.Label12;
+            column.HeaderText = OsLocalization.Optimizer.Label2;
             column.ReadOnly = false;
             column.AutoSizeMode = DataGridViewAutoSizeColumnMode.Fill;
             _gridTableTabsSimple.Columns.Add(column);
@@ -673,6 +673,7 @@ namespace OsEngine.OsOptimizer
                 timeFrame.Add(TimeFrame.Min30.ToString());
                 timeFrame.Add(TimeFrame.Hour1.ToString());
                 timeFrame.Add(TimeFrame.Hour2.ToString());
+                timeFrame.Add(TimeFrame.Hour4.ToString());
             }
 
 
@@ -1716,6 +1717,11 @@ namespace OsEngine.OsOptimizer
             else
             {
                 bots = _botsOutOfSample;
+            }
+
+            if (e.RowIndex >= bots.Count)
+            {
+                return;
             }
 
             if (_sortBotsType == SortBotsType.TotalProfit)
